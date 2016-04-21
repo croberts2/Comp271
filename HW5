@@ -1,0 +1,180 @@
+//
+//  HW5.cpp
+//  Tester
+//
+//  Created by Charles Roberts on 4/15/16.
+//  Copyright (c) 2015 Charles Roberts. All rights reserved.
+//
+
+#include <iostream>
+#include <string>
+#include <stdlib.h>
+#include <array>
+#include <fstream>
+#include <cstring>
+
+using namespace std;
+
+void bubblesort(int A[],int n){         //bubblesort
+    int i, j, temp;                     //declares counting variables and the temporary holder
+    int comparisons=0;                  //decalres comparisons and sets it to zero
+    int swaps=0;                        // decalares swaps and sets it to zero
+    for(i=1;i<n;i++)                       //for loop runs while iis less than n
+    {
+        for(j=0;j<n-i;j++)                  //for loop runs while j is less than n-1
+        {comparisons++;                     //adds 1 to comparisons
+            if(A[j]>A[j+1])                   //if statement for swapping
+            {
+                temp=A[j];
+                A[j]=A[j+1];
+                A[j+1]=temp;
+                swaps++;
+            }
+        }
+    }
+    cout<<"Bubblesort:"<<endl;                  //prints info to user
+    cout<<"comparisons: "<<comparisons<<endl;
+    cout<<"swaps: "<<swaps<<endl;
+}
+
+void insertionSort(int A[], int n){     //insertion sort
+    int i, j, element;          //variables of int declared
+    int comp=0;                 //comp declared and set to zero, comparisons counter
+    int s=0;                    //s declared and set to zero, swaps counter
+    for(i=1;i<n;i++)            //for loop for comparisons
+    {
+        comp++;
+        element=A[i];
+        j=i;
+        while((j>0)&&(A[j-1]>element))  //while loop for swaps
+        {
+            A[j]=A[j-1];
+            j=j-1;
+            s++;
+        }
+        A[j]=element;
+    }
+        cout<<"Insertionsort:"<<endl; //prints info to user
+        cout<<"comparisons: "<<comp<<endl;
+        cout<<"swaps: "<<s<<endl;
+}
+
+void shell_sort(int A[], int n) //shell sort
+{
+    int temp, gap, i; //ariables of int delcared
+    int swapped;
+    int comparisons=0; //comparisons declared and set to zero
+    int swaps=0;  // swap declared and set to zero
+    gap=n/2;            //makes gap half the size of n
+    do  //runs while gap is greater than of equal to one
+    {
+        do{             //runs while swpped is equivalent to 1
+            swapped=0;              //sets swapped to zero
+            for(i=0;i<n-gap;i++){           //for loop for comparisons
+                
+                comparisons++;              //increase comparisons by 1
+                if(A[i]>A[i+gap])           //if statement for swapping
+                {
+                    temp=A[i];
+                    A[i]=A[i+gap];
+                    A[i+gap]=temp;
+                    swapped=1;
+                    swaps++;
+                }}
+        }while(swapped==1);
+    }while((gap=gap/2)>=1);
+    cout<<"Shell Sort:"<<endl;                      //prints info to user
+    cout<<"comparisons: "<<comparisons<<endl;
+    cout<<"swaps: "<<swaps<<endl;
+}
+
+
+void quickSort(int arr[], int left, int right,int comparisons, int swaps) { //quicksort
+
+    int i = left, j = right;        // sets i to left and j to right
+    int tmp;                        //declares tmp
+    int pivot = arr[(left + right) / 2];        //sets the pivot
+    /* partition */
+    while (i <= j) {
+        while (arr[i] < pivot)
+            i++;
+        while (arr[j] > pivot)
+            j--;
+        if (i <= j) {
+            tmp = arr[i];
+            arr[i] = arr[j];
+            arr[j] = tmp;
+            swaps++;
+            i++;
+            j--;
+        }
+    };
+    /* recursion */
+    if (left < j)
+    {comparisons++;
+        quickSort(arr, left, j,comparisons,swaps);
+        }
+    if (i < right)
+    {comparisons++;
+        quickSort(arr, i, right,comparisons,swaps);}
+    cout<<"Quicksort:"<<endl;
+    cout<<"comparisons: "<<comparisons<<endl;
+    cout<<"swaps: "<<swaps<<endl;}
+
+void merge(int A[], int low, int high, int mid){            //merger for merge sort
+    int i,j,k,C[10000];             //declare int variables and creates array c with sizr 10000
+    i=low;      				//index for first part
+    j=mid+1;    				//index for second part
+    k=0;        				//index for array C
+    while((i<=mid) && (j<=high))
+    {
+        if(A[i]<A[j]) {C[k]=A[i++];}
+        else {C[k]=A[j++];}
+        k++;
+    }
+    while(i<=mid) {C[k++]=A[i++];}
+    while(j<=high) {C[k++]=A[j++];}
+    for(i=low, j=0; i<=high; i++,j++) {A[i]=C[j];}
+}
+
+void MergeSort(int A[], int low, int high){ //merge sort using recussion
+    int mid;                // decalres mid
+    if(low<high)            // runs if low is less than high
+    {
+        mid=(low+high)/2;
+        MergeSort(A,low,mid);
+        MergeSort(A,mid+1,high);
+        merge(A,low,high,mid);
+    }
+}
+
+int main() {                //main
+    ifstream in; //creates instream
+    string num;     //declares string num
+    int NUMBERS;    //decalres NUMBERS
+    int A[10000];   //creates array A with size 10000
+    int i=0;        //declares i and sets it to zero
+    int size=0;     //decalares size and sets it to zero
+    int swaps=0;    //declares swaps and sets it to zero
+    int comp=0;     //declares comp and sets it to zero
+    in.open("Random.txt");        //**uncommment to change file location to test each file**//
+    //in.open("Reversed.txt");    //**uncomment to change file location to test each file**//
+    //in.open("FewUnique.txt");   //**uncommment to change file location to test each file**//
+    //in.open("NearlySorted.txt");//**uncommment to change file location to test each file**//
+    while(in.peek()!=EOF)           //while loop that reads in the numbers and puts them into array A
+    {
+        getline(in,num,' ');
+        NUMBERS=atoi(num.c_str());
+        A[i]=NUMBERS;
+        i=i+1;
+        size++;
+        
+    }
+    in.clear();in.close();  //clears in stream, closses in stream
+    //**Sorting Algoriths**
+    insertionSort(A,size);
+    //bubblesort(A, size);                              //**uncomment to run each funtion seperatly, itherwise A will not be set correctly**
+    //quickSort(A, 0, size,comp,swaps);
+    //shell_sort(A,size);
+    // MergeSort(A, 0,size);
+}
