@@ -1,0 +1,73 @@
+#include <iostream>
+#include <fstream>
+#include <array>
+#include <stdio.h>
+#include <string.h>
+#include <math.h>
+
+using namespace std;
+
+int extraction_method(int val,int M){       //extraction method
+    int index;                              // declares index that will reutrn the index
+    string Num_in_string=to_string(val);    //turns val into a string
+    string Nthree,Nfive,Nseven,Neight;     //sets the strings to hold the numbers pulled from the SSNs
+    Nthree=Num_in_string.at(2);             //each of the strings holds the one caracter pulled out at that spot
+    Nfive=Num_in_string.at(4);
+    Nseven=Num_in_string.at(6);
+    Neight=Num_in_string.at(7);
+    string str =Nthree+Nfive+Nseven+Neight;     //combines all the strings of characters into one string
+   // cout<<str<<endl;
+    index=atoi(str.c_str());        //turns the string into an integer and sets it as index
+    return index;
+}
+int quadratic_probing(int num,int hash,int M,int max){  //qudratic probing
+    int index;                                          // declares integer
+    M=pow(M,2);                                         //takes M and sets it to the square of M
+    index=(hash+M)%max;                                 //sets the index to the hash value plus M and mods it by max
+    return index;
+}
+void write_to_file(int hash, int num, ofstream &put,int max,int i){ //writes the hash table to the output file
+    put<<hash;                                                      //writes the hash value
+    if ((i+1)!=max){put<<',';}                                      //adds a comma if it is not the last value
+}
+int main()                                      //starts main
+{
+    ifstream in;                                //declares the in stream
+    ofstream out;                               //declares the out stream
+    out.open("hashed_socials.txt"); //opens the out stream
+    string num;     //declares string num
+    int NUMBERS,i=0,max=0,index=0;;     //declares all the ints
+    int Hashtable[1000000];               //declares the Hastable with the size 10000000
+    int ARRAY_of_numbers[1000000];        //declares the array that holds the SSNs with the size 10000000
+    in.open("everybodys_socials.txt");         //opens the in strea
+    while(in.peek()!=EOF)           //while loop that reads in the numbers and puts them into array ARRAY_of_numbers
+    {
+        getline(in,num,',');
+        NUMBERS=atoi(num.c_str());
+       ARRAY_of_numbers[i]=NUMBERS;
+        cout<<ARRAY_of_numbers[i]<<endl;
+        i=i+1;
+        max++;
+    }
+    int M=0;    //declares, asks for, and sets, M which is the user inputted number
+    cout<<"Please Enter A Number Between 1 and 450 million."<<endl;
+    cin>>M;
+    if(M<1 || M>450000000){                     //makes sure the number is between 1 nad 450 million
+        cout<<"Not in Range, Please Try Again: "<<endl;
+        cin>>M;
+    }
+    for(int i=0;i<max;i++)    //initialize the hash table to contain 0s
+       Hashtable[i]=0;
+    for(int i=0;i<max;i++)    //hash the elements in array_of_numbers into the hash_table
+    {
+    index=extraction_method(ARRAY_of_numbers[i],M);
+    if(Hashtable[index]==0)
+        Hashtable[index]=ARRAY_of_numbers[i];
+    else
+    {
+        quadratic_probing(ARRAY_of_numbers[i],Hashtable[i],M,max); //calss the quaratic probing if there is a collision
+    }
+        write_to_file(Hashtable[i],ARRAY_of_numbers[i],out,max,i); //writes info to file
+    }
+} //ends main
+
