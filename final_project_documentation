@@ -1,0 +1,14 @@
+My project is creating the Exploding Kittens Game. This game is playable through the console by two human players. The goal of the game is to not explode when you draw an exploding kitten. Playing back and forth each player plays cards on his turn and then draws a card from the deck. If they draw an exploding kitten they have to defuse it otherwise they lose and the game is over.
+The rules for the official game are found at http://www.explodingkittens.com/how
+
+I was not able to get the trade in function to correctly work. I could not get it to remove the cards from the hands correctly
+
+For this project I first held the cards data in a struct called ‘card’ which contained the type of card as an integer. Each integer indicates a different card type. In the struct it also has the card info, which holds the name of the card. This makes it easy to access the cards type and info while keeping them separate. The card infor is read in from a text file that I have included. The first line is the card type and the second line is the card info for each card. This was a very easy way to store the card info without hard coding it into the program. The player hands, the deck, and the discard pile are all vectors that hold ‘card’. This was the best structure to use for each of these because individual cards could easily be accessed and the vector size could change easily as the game is played. It also made pulling the next card off the deck easy. I just had to access the deck.back() which I used as the top of the deck. With the discard pile I also used the bottom as the ‘top’ of the deck because it was easier and more reliable. 
+
+Using the code is pretty simple. Just follow the onscreen instructions for each turn. The rules are not explained in the game but they are found at http://www.explodingkittens.com/how
+As long as the file location of the card info is found and read in correctly from the file included the game should play. Each player takes his or her turn, starting with the first player, and it just keeps going back and forth until someone cannot defuse a drawn bomb. Then the game is over and the other player wins.
+
+I used Xcode Version 7.2.1 (7C1002) on Mac OS X El Capitan version 10.11
+**note sometimes cin>> would not work in Xcode. I would have to restart xcode several times before it would finally work, if it didn’t work it would continue the loops forever, I think it is an Xcode bug**
+
+I did not work with a partner. I did everything myself.
