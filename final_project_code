@@ -1,0 +1,471 @@
+//
+//  ExplodingKittens.cpp
+//  Tester
+//
+//  Created by Charles Roberts on 8/27/16.
+//  Copyright (c) 2016 Charles Roberts. All rights reserved.
+//
+
+#include <iostream>
+#include <vector>
+#include <string>
+#include <stack>
+#include <algorithm>
+#include <fstream>
+
+using namespace std;                //struct for the card structure whic hold the card name and the type of card
+struct card{
+    string card_name;
+    int type;
+};
+vector<card>Deck;                       // declares Deck which is a vector of card
+vector<card> first_Player_hand;         // declares the first players hand which is a vector of card
+vector<card> second_Player_hand;        // declares the second players hand which is a vector of card
+vector<card> discard_pile;              // declares the discard pile which is a vector of card
+
+void Attack(int player);                //declares the attack funtion so it can be used
+
+bool Load_the_deck(){                       //load the deck function
+    ifstream in;                            // declares stream in
+    in.open("EK_Card_Deck.txt");    //opens stream at file location
+    int TYPE=1;                             //declares type for holding the cards type
+    string info,C_type;                     //decalres info and C_type for holding the info from the file and then holding the cards type
+while(in.peek()!=EOF)                       //while loop that runs while its not the end of the file
+    {
+        getline(in,C_type, '\n');           //gets the first line which is an integer but it is read in as a string and saves it as the card type
+        TYPE=atoi(C_type.c_str());          //converst the string it read in into an int
+        getline(in,info, '\n');             //gets the second line of the file which is the card info and saves it as info
+        card New_card;                      //declares New_card
+        New_card.type=TYPE;                 //sets the type of the New_card
+        New_card.card_name=info;            //sets the info of the New_card
+        Deck.push_back(New_card);           //pushes the New Card onto the botton (which i use at the top) of the Deck
+    }
+    return true;}
+
+void shuffle_deck()                         //shuffles the deck function
+{
+    srand (time(NULL));                     //seeds rand with the time
+    int random_number=(rand()%500)+1;       //makes a random number
+    while (random_number!=0)                //while that random number does not equal 0 it runs
+    {random_shuffle(Deck.begin(),Deck.end());   //shuffles the deck and decreases the random number by 1
+        random_number--;}          }
+void deal_the_hands()                       //deals the hands function
+{
+    card Defuse1, Defuse2;                  //declares the two defuse cards that are added to each players hand as the rules state
+    Defuse1.type=1;                         //sets the types to a defuser
+    Defuse2.type=1;                         //sets the types to a defuser
+    Defuse1.card_name="Defuse - Via Belly Rubs";            //sets the defuser name
+    Defuse2.card_name="Defuse - Via Catnip Sandwhiches";    //sets the defuser name
+    first_Player_hand.push_back(Defuse1);                   //adds Defuse1 to the first players hand
+    second_Player_hand.push_back(Defuse2);                  //adds Defuse 2 to the second players hand
+    int i=0;                                                //declares i as zero for the while loop
+    while (i<4){                                            //while loop that gives each player four cards
+        first_Player_hand.push_back(Deck.back());               //card is added to first player hand and then deleted off the deck
+        Deck.pop_back();
+        second_Player_hand.push_back(Deck.back());              // card is added to second player hand and then deleted off the deck
+        Deck.pop_back();
+        i++;
+    }
+}
+void write_out_hand(int player){                           //function that writes out the cards in the players hand
+    cout<<"**Player "<<player<<":**"<<endl;                 //tells the user which players hand is being written out
+    int i=0;                                                //declares i
+    if (player==1){                                         //if its the first player then it goes through each card in the hand and prints its info to the console
+        while (i!=first_Player_hand.size())
+        {
+            cout<<"Card "<<i+1<<":"<<endl;
+            cout<<first_Player_hand[i].card_name<<endl;
+            i++;
+        }
+    }
+    if (player==2){                                         //if its the second player then it goes through each card in the hand and prints its info to the console
+        while (i!=second_Player_hand.size())
+        {
+            cout<<"Card "<<i+1<<":"<<endl;
+            cout<<second_Player_hand[i].card_name<<endl;
+            i++;
+        }
+    }
+}
+
+int can_the_player_defuse(int player){              //function that checks to see if the player can defuse the bomb
+    int defuse_checker=1;   //checks if they have a defuse card 1 = they dont, 0 = they do
+    if (player==1){                             //checks player 1 hand
+        for(int i=0;i<first_Player_hand.size();i++){
+            if (first_Player_hand[i].type==1){
+                defuse_checker=0;
+                discard_pile.push_back(first_Player_hand[i]);      //if they do it removes the card from thier hand and puts it on the discard pile
+                first_Player_hand.erase(first_Player_hand.begin()+i);}}
+    }
+    if(player==2){                              //checks player 2 hand
+        for(int i=0;i<second_Player_hand.size();i++){
+            if (second_Player_hand[i].type==1){
+                defuse_checker=0;
+                discard_pile.push_back(second_Player_hand[i]);     //if they do it removes the card from thier hand and puts it on the discard pile
+                second_Player_hand.erase(second_Player_hand.begin()+i);}}
+    }
+    if (defuse_checker==1){return 1;}  //if they were unable to defuse it returns 1 which is what bomb indicater is then set to
+    return 0;}      //if they could defuse it, 0 is returned which is what the bomb indicator is then set to
+
+void Add_exploding_kitten(){    //Add exploding kitten function, adds a exploding kitten card to the deck
+    card Ex_kitten;             //declares the exploding kitten card
+    Ex_kitten.type=0;           //sets its type to zero which indicates an exploding kitten
+    Ex_kitten.card_name="Exploding Kitten"; //sets its name
+    Deck.push_back(Ex_kitten);  //adds it to the bottom of the deck (which i use as the top)
+    shuffle_deck(); //shuffles the deck
+}
+void Add_extra_defuse_cards(){ //function that adds the extra defuse cards to the deck
+    card defuse1, defuse2;      //declares the two cards
+    defuse1.card_name="Defuse - Via Crate"; //sets the type and info for defuse one
+    defuse1.type=1;
+    defuse2.card_name="Defuse - Via Kitten Therapy";    //setss the type and ifo for defuse two
+    defuse2.type=1;
+    Deck.push_back(defuse1);    //adds defuse one to deck
+    Deck.push_back(defuse2);    //adds defuse two to the deck
+    shuffle_deck();             // shuffles the deck
+}
+void See_the_Future(){      //see the future function
+    vector<card>Temp_holder;                                                //declares the vectr Temp_holder which holds the future cards temporarily
+    int i=0;
+    while (i<3){Temp_holder.push_back(Deck.back());Deck.pop_back();i++;}    //adds the bottom 3 cards from deck(my top) to Temp_holder
+    i=0;
+    cout<<"**First, Second, And Third Card On The Deck:**"<<endl;   //writes out those three cards in order
+    while (i<3){cout<<Temp_holder[i].card_name<<endl;i++;}
+    i=0;
+    while (i<3){Deck.push_back(Temp_holder.back());i++;     //puts the card back in the deck in order
+        Temp_holder.pop_back();}
+}
+void Favor(int player){                     //favor function
+cout<<"Player "<<player<<" used Favor.";    //tells the user which player used favor
+    int card_slected=0;
+    if(player==1){cout<<"Player 2 Please Select A Card To Give To Player 1"<<endl; //asks for the second player to select a car to give over
+        write_out_hand(2);  //writes out thier hand
+        cout<<"Card Selected: ";
+        cin>>card_slected;
+        first_Player_hand.push_back(second_Player_hand[card_slected-1]);    //adds that card selected to the first players hand
+    second_Player_hand.erase (second_Player_hand.begin()+(card_slected)-1);}//removes the card from the second players hand
+    if(player==2){cout<<"Player 1 Please Select A Card To Give To Player 2"<<endl; //asks for the first player to select a car to give over
+        write_out_hand(1);
+        cout<<"Card Selected: ";
+        cin>>card_slected;
+        second_Player_hand.push_back(first_Player_hand[card_slected-1]); //adds that card selected to the first players han
+        first_Player_hand.erase (first_Player_hand.begin()+(card_slected)-1);//removes the card from the second players hand
+    }
+}
+int draw_card(int player){      //draw card function that draws a card and puts it in the players hand
+    if(player==1){first_Player_hand.push_back(Deck.back());cout<<Deck.back().card_name<<" was drawn and added to your hand."<<endl;//tells player 1 which card was drawn and adds it to thier hand
+        if(Deck.back().type==0){Deck.pop_back();return 1;}
+        Deck.pop_back();return 0;}
+    if(player==2){second_Player_hand.push_back(Deck.back());cout<<Deck.back().card_name<<" was drawn and added to your hand."<<endl;//tells player 2 which card was drawn and adds it to thier hand
+        if(Deck.back().type==0){Deck.pop_back();return 1;}
+        Deck.pop_back();return 0;}
+    return 0;
+}
+bool check_for_cards(int number_needed,int card_type,int player){
+    int i=0;
+    int counter=0;
+    if(number_needed==2&&player==1){
+        while (i!=first_Player_hand.size()){
+            if(first_Player_hand[i].type==card_type){counter++;}
+        i++;
+        }
+        if(counter>=2){return true;}
+    }
+    if(number_needed==2&&player==2){
+        while (i!=second_Player_hand.size()){
+        if(second_Player_hand[i].type==card_type){counter++;}
+        i++;
+    }
+        if(counter>=2){return true;}
+}
+    if(number_needed==3&&player==1){
+        while (i!=first_Player_hand.size()){
+            if(first_Player_hand[i].type==card_type){counter++;}
+            i++;
+        }
+        if(counter>=3){return true;}
+    }
+    if(number_needed==3&&player==2){
+        while (i!=second_Player_hand.size()){
+            if(second_Player_hand[i].type==card_type){counter++;}
+            i++;
+        }
+        if(counter>=3){return true;}
+    }
+    return false;}
+
+void trade_in_cards(card played_card,int player, int card_selected){ //card trade in function for trading in 2 or 3 cat cards passing it the played card data
+    //not quite working
+    cout<<"This type of card can only be used to trade in with cards of its same exact type."<<endl;//tells the user the functionality of the cat cards
+    cout<<"Would you like to trade in 2 of these cards to get a card blindly from the other player or would you like to trade in three of these cards to  'go fish' and ask the player for a card?"<<endl;
+    cout<<"Please enter 2 or 3 to make your decision or 0 to back out."<<endl;//asks them to enter 2 or 3 or 0 to make thier choice
+    char response3='\0';
+    cin >>response3;            //takes in thier response and sets it to response3
+    int response_checker3=4;    //int used to check if they entered a correct number
+    if(response3==2||response3==3||response3==0){response_checker3=0;} //checks if they entered the right number
+    while(response_checker3==1){    //while loop that has them retry thier response if its wrong and resets thier new response to response3
+        cout<<"Error! Please try your response again"<<endl;
+        cout<<"Please enter '2' for trading in 2 cards, or '3' for trading in 3 cards, or '0' for backing out of the trade in."<<endl;
+        cin>>response3;if(response3==2||response3==3||response3==0){response_checker3=0;}}
+    if(response3==2&&player==1){                                        //if they want to trade in two cards and its player one
+        if (check_for_cards(2,played_card.type,player)==true){              //checks to see if they have another of the same card and if they do erase the first card
+            first_Player_hand.erase(first_Player_hand.begin()+card_selected-1);
+            int checker=0;
+            int i=0;
+            while (i!=first_Player_hand.size()&&checker==0){    //finds a second card with that type and erases it from the hand
+                if(first_Player_hand[i].type==played_card.type){
+                    first_Player_hand.erase(first_Player_hand.begin()+i);
+                    checker++;}
+                i++;
+            }
+        }
+        else{cout<<"You do not have the right amount of this card. Please try playing another card."<<endl;}    //if they dont have two cards prints to the user that they dont have enough of that card
+    }
+    if(response3==2&&player==2){                                //runs if they want to trade in two cards and its player two
+        if (check_for_cards(2,played_card.type,player)==true){ //checks to see if they have another of the same card and if they do erase the first card
+            second_Player_hand.erase(second_Player_hand.begin()+card_selected-1);
+            int checker=0;
+            int i=0;
+            while (i!=second_Player_hand.size()&&checker==0){   //finds a second card with that type and erases it from the hand
+                if(second_Player_hand[i].type==played_card.type){
+                    second_Player_hand.erase(second_Player_hand.begin()+i);
+                    checker++;}
+                i++;
+            }
+        }
+        else{cout<<"You do not have the right amount of this card. Please try playing another card."<<endl;} //if they dont have two cards prints to the user that they dont have enough of that card
+    }
+    if(response3==3&&player==1){     //runs if they want to trade in 3 cards and its player one
+        if (check_for_cards(3,played_card.type,player)==true){//checks to see if they have 2 more of the same card and if they do erase the first card
+            first_Player_hand.erase(first_Player_hand.begin()+card_selected-1);
+            int checker=0;
+            int i=0;
+            while (i!=first_Player_hand.size()&&checker==0){    //finds another card with that type and erases it from the hand
+                if(first_Player_hand[i].type==played_card.type){
+                    first_Player_hand.erase(first_Player_hand.begin()+i);
+                    checker++;}
+                i++;
+            }
+        }
+        else{cout<<"You do not have the right amount of this card. Please try playing another card."<<endl;} //if they dont have two cards prints to the user that they dont have enough of that card
+    }
+    if(response3==3&&player==2){    //runs if they want to trade in 3 cards and its player two
+        if (check_for_cards(3,played_card.type,player)==true){//checks to see if they have 2 more of the same card and if they do erase the first card
+            second_Player_hand.erase(second_Player_hand.begin()+card_selected-1);
+            int checker=0;
+            int i=0;
+            while (i!=second_Player_hand.size()&&checker==0){   //finds a anoter card with that type and erases it from the hand
+                if(second_Player_hand[i].type==played_card.type){
+                    second_Player_hand.erase(second_Player_hand.begin()+i);
+                    checker++;}
+                i++;
+            }
+        }
+        else{cout<<"You do not have the right amount of this card. Please try playing another card."<<endl;} //if they dont have two cards prints to the user that they dont have enough of that card
+    }
+
+    if(response3==0){cout<<"Trade in aborted."<<endl;return;}//if they want to abort then it just returns out of the function
+}
+
+int player1_turn(int player){   //function for player1's turn
+     //comments are exactly the same as player 2's turn just set for player1's use
+    cout<<"\n***Player 1's Turn***"<<endl;                        //prints to the user that is player1's turn
+    write_out_hand(1);                                              //write out their hand so they can see what cards they have
+    cout<<"Would You Like To Play A Card? Please enter y for Yes or n for No:"<<endl;   //asks if they want to play a card
+    char response;  //declares a response character to the above question
+    char response2 = '\0';  //declares a second respons character and sets it to null
+    cin>>response;  //takes in user inout and sets it to response
+    int bomb=0; //delcares bomb indicater
+    int do_they_draw=0; //decares int that keeps track if they should draw(used for skipping draws iwith skip card)
+    int response_checker=1; //declares a response checker used for cheking the users input
+    if(response=='y'||response=='n'){response_checker=0;}   //if user correctly inputted changes checker to p
+    while(response_checker==1){ //runs while input is wirng. Asks the user for new inout until its correct
+        cout<<"Error! Please try your response again"<<endl;
+        cout<<"Please enter y for Yes or n for No:"<<endl;
+        cin>>response;if(response=='y'||response=='n'){response_checker=0;}}
+    int play_another_card=0;    //declares play_another_card which keeps track if the user wnats to play another card
+    if (response2=='n') {        //if the user responds no to playing another card the checker is set to 1 so that the while loop is skipped
+        play_another_card=1;
+    }
+    while (play_another_card==0) {//runs while the user wants to play a card
+        if(response=='y'){      //runs if the user responded yes to playing a card
+            cout<<"What Card Would You Like To Play? Please Enter The Number:"<<endl;   //asks which card they want to play
+            write_out_hand(1);  //writes out hand so they can see whats in thier hand
+            int card_selected=0;    //delcares card_slected which holds the number of the card they selected
+            cin>>card_selected;     //takes user input and sets it to card selected
+            /*int response_checker4=1;      //checker that checks the input, for some reson it causes it to loop forever if i use it
+            if(card_selected>0&&card_selected<(first_Player_hand.size()+1)){response_checker4=0;}
+            while(response_checker4==1){
+                cout<<"Error! Please try your response again"<<endl;
+                cout<<"Please enter the number of the Card you would like to play:"<<endl;
+                cin>>card_selected;
+                cout<<"New Card Selected."<<endl;
+                if(card_selected>0&&card_selected<(first_Player_hand.size()+1)){response_checker4=0;}} */
+            do_they_draw=0; //resests do_they draw to zerp
+            card played_card;   //delcares play_card which holds the card data they played
+            int correctly_played=0; //integer that is 0 if the card was incorrectly played or 1 if it was correctly played
+            played_card=first_Player_hand[card_selected-1]; //sets played card to the card from the players hand
+            while (correctly_played!=1){ //runs while no cards are correctly played
+                if (played_card.type==2||played_card.type==3||played_card.type==4||played_card.type==5||played_card.type==6) {//if the trade in function is desired this if statement is used
+                    trade_in_cards(played_card,player,card_selected); correctly_played=1;
+                }
+                if(played_card.type==7){first_Player_hand.erase(first_Player_hand.begin()+card_selected-1);See_the_Future();correctly_played=1;}//if the see the furture in function is desired this if statement is used
+
+                if (played_card.type==8) {first_Player_hand.erase(first_Player_hand.begin()+card_selected-1);shuffle_deck();correctly_played=1;}//if the shuffle function is desired this if statement is used
+
+                if(played_card.type==9){cout<<"Cannot Play That Card please Select Another Card"<<endl;cin>>card_selected;//if the nope card is played it tells the user theyve made and error, loops back and ask for another card
+                    played_card=first_Player_hand[card_selected-1];}
+                if(played_card.type==10){first_Player_hand.erase(first_Player_hand.begin()+card_selected-1);Attack(player);do_they_draw=1;//if the attack function is desired this if statement is used
+correctly_played=1;}
+                if(played_card.type==11){first_Player_hand.erase(first_Player_hand.begin()+card_selected-1);Favor(player);correctly_played=1;}//if the favor function is desired this if statement is used
+
+                if(played_card.type==12){//if the skip function is desired this if statement is used
+                    first_Player_hand.erase(first_Player_hand.begin()+card_selected-1);cout<<"Turn Skipped. Card Not Drawn"<<endl;//removes skip card
+                    do_they_draw=1;//sets draw indicator to 1 so that a card is not drawn
+                    correctly_played=1; //shows the card was correctly played
+                    play_another_card=1;    //sets play_another_card to 1 so that another card is not played
+                }
+            }
+            if (do_they_draw==0){//runs alsong as a turn is not skipped
+            cout<<"Player 1 Would You Like To Play Another Card?"<<endl;//asks if they want to play another card
+            cin>>response2;//takes in user response and sets it to respons2
+            int response_checker2=1;//respne checjer integer
+            if(response2=='y'||response2=='n'){response_checker2=0;}//checkes to see if correct response was inputted
+            while(response_checker2==1){cout<<"Error! Please try your response again"<<endl;//if not error is said to user and asks for new input
+                cout<<"Please enter y for Yes or n for No:"<<endl;
+                cin>>response2;if(response2=='y'||response2=='n'){response_checker2=0;}}
+            if (response2=='y'){play_another_card=0;}
+            if (response2=='n'){play_another_card=1;}
+            }
+            if(do_they_draw==0 && response2=='n'){      //if they didnt skip and they did nt want to play another card
+                bomb=draw_card(player); //draws ca card and if its a bomb card bomb is changed to 1 if not it stays = to 0
+                if (bomb==1){cout<<"******You drew a bomb!******"<<endl;    //if bomb is drawn
+                    bomb=can_the_player_defuse(player);//sees if the user has a defuse card and can defuse the bomb
+                    if (bomb==0){cout<<"You defused the bomb!"<<endl;}//if they defuse the bobm
+                    Add_exploding_kitten();//readds the explding kitten to the deck
+                    shuffle_deck();}
+            }
+        }
+    }
+    if (response=='n') {                                        //if the user doesnt want to play an initial card
+        cout<<"A Card Is Drawn and Added To Your Hand"<<endl;   //tells the user they drew a card
+        bomb=draw_card(player);                                 //same as above, checks to see if they drew a bomb
+        if (bomb==1){cout<<"******You drew a bomb!******"<<endl;
+            bomb=can_the_player_defuse(player);
+            if (bomb==0){cout<<"You defused the bomb!"<<endl;}
+            Add_exploding_kitten();
+            shuffle_deck();}
+    }
+    if (bomb==1) {return 1;}                                //if they drew a bomb and couldnt defuse it 1 is returned to the call to thier turn and they lose
+    return 0;   //if bomb!=1 then 0 is returned ending thier turn and the next player goes
+}
+
+int player2_turn(int player){ //function for player 2's turn
+    cout<<"\n***Player 2's Turn***"<<endl;                        //comments are exactly the same as player 1's turn just set for player2's use
+    write_out_hand(2);
+    cout<<"Would You Like To Play A Card? Please enter y for Yes or n for No:"<<endl;
+    char response;
+    char response2 = '\0';
+    cin>>response;
+    int bomb=0;
+    int do_they_draw=0;
+    int response_checker=1;
+    if(response=='y'||response=='n'){response_checker=0;}
+    while(response_checker==1){
+        cout<<"Error! Please try your response again"<<endl;
+        cout<<"Please enter y for Yes or n for No:"<<endl;
+        cin>>response;if(response=='y'||response=='n'){response_checker=0;}}
+    int play_another_card=0;
+    if (response2=='n') {
+        play_another_card=1;
+    }
+    while (play_another_card==0) {
+    if(response=='y'){
+        cout<<"What Card Would You Like To Play? Please Enter The Number:"<<endl;
+        write_out_hand(2);
+        int card_selected=0;
+        cin>>card_selected;
+        /*int response_checker4=1;
+        if(card_selected>0&&card_selected<(first_Player_hand.size()+1)){response_checker4=0;}
+        while(response_checker4==1){
+            cout<<"Error! Please try your response again"<<endl;
+            cout<<"Please enter the number of the Card you would like to play:"<<endl;
+            cin>>card_selected;
+            cout<<"New Card Selected."<<endl;
+            if(card_selected>0&&card_selected<(first_Player_hand.size()+1)){response_checker4=0;}}*/
+        do_they_draw=0;
+        card played_card;
+        int correctly_played=0;
+        played_card=second_Player_hand[card_selected-1];
+        while (correctly_played!=1){
+            if (played_card.type==2||played_card.type==3||played_card.type==4||played_card.type==5||played_card.type==6) {
+                trade_in_cards(played_card,player,card_selected); correctly_played=1;
+            }
+
+            if(played_card.type==7){second_Player_hand.erase(second_Player_hand.begin()+card_selected-1);See_the_Future();correctly_played=1;}
+            if (played_card.type==8) {second_Player_hand.erase(second_Player_hand.begin()+card_selected-1);shuffle_deck();correctly_played=1;}
+            if(played_card.type==9){cout<<"Cannot Play That Card please Select Another Card"<<endl;cin>>card_selected;
+                played_card=second_Player_hand[card_selected-1];}
+            if(played_card.type==10){second_Player_hand.erase(second_Player_hand.begin()+card_selected-1);Attack(player);do_they_draw=1;correctly_played=1;}
+            if(played_card.type==11){second_Player_hand.erase(second_Player_hand.begin()+card_selected-1);Favor(player);correctly_played=1;}
+            if(played_card.type==12){second_Player_hand.erase(second_Player_hand.begin()+card_selected-1);cout<<"Turn Skipped. Card Not Drawn"<<endl;
+                do_they_draw=1;
+                correctly_played=1;
+                play_another_card=1;
+            }
+        }
+        if (do_they_draw==0){
+        cout<<"Player 2 Would You Like To Play Another Card?"<<endl;
+       
+        cin>>response2;
+        int response_checker2=1;
+        if(response2=='y'||response2=='n'){response_checker2=0;}
+        while(response_checker2==1){cout<<"Error! Please try your response again"<<endl;
+            cout<<"Please enter y for Yes or n for No:"<<endl;
+            cin>>response2;if(response2=='y'||response2=='n'){response_checker2=0;}}
+        if (response2=='y'){play_another_card=0;}
+        if (response2=='n'){play_another_card=1;}
+        }
+        if(do_they_draw==0 && response2=='n'){
+            bomb=draw_card(player);
+            if (bomb==1){cout<<"******You drew a bomb!******"<<endl;
+                bomb=can_the_player_defuse(player);
+                if (bomb==0){cout<<"You defused the bomb!"<<endl;}
+                Add_exploding_kitten();
+                shuffle_deck();}
+        }
+    }
+    }
+    if (response=='n') {
+        cout<<"A Card Is Drawn and Added To Your Hand"<<endl;
+        bomb=draw_card(player);
+        if (bomb==1){cout<<"******You drew a bomb!******"<<endl;
+            bomb=can_the_player_defuse(player);
+            if (bomb==0){cout<<"You defused the bomb!"<<endl;}
+            Add_exploding_kitten();
+            shuffle_deck();}
+    }
+        if (bomb==1) {return 1;}
+        return 0;
+    }
+
+void Attack(int player){
+    if (player==1){player2_turn(2);}
+    if (player==2){player1_turn(1);}
+}
+
+int main() {                    //start of main
+    Load_the_deck();            //loads the cards from the file into the deck
+    shuffle_deck();             //shuffles the deck
+    deal_the_hands();           //deals the starting hands to the players
+    Add_exploding_kitten();     //adds the exploding kitten to the deck
+    Add_extra_defuse_cards();   //adds the extra defuse cards to the deck
+    int bomb1=0,bomb2=0;        //declares bomb indicators that keep track if a bomb has drawn and not defused
+    while(bomb1!=1||bomb2!=1){  //while loop that runs while a bomb has not been exploded
+        bomb1=player1_turn(1);  //plays player ones turn returning each time if there was a bomb exploded on that players turn
+        if (bomb1==1){break;}   //checks if player on exploded and breaks the while loop if they did explode
+        bomb2=player2_turn(2); //plays player twos turn returning each time if there was a bomb exploded on that players turn
+    }
+    if(bomb1==1){cout<<"****Boom! Bomb could not be defused. Player 2 Wins!!!****"<<endl;} //if player one exploded writes this to the console and ends game
+    if(bomb2==1){cout<<"****Boom! Bomb could not be defused. Player 1 Wins!!!****"<<endl;} // if player two exploded writed this to the console and ends game
+}
